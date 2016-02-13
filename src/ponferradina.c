@@ -138,12 +138,11 @@ static void main_window_load(Window *window) {
   // Se carga la imagen del escudo
   s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ESCUDO_PONFE);
 
-  GPoint center = grect_center_point(&bounds);
-
   GSize image_size = gbitmap_get_bounds(s_bitmap).size;
 
-  GRect image_frame = GRect(center.x, text_size.h + y_offset_time_layer + 6, image_size.w, image_size.h);
-  image_frame.origin.x -= (image_size.w / 2) - 1;
+  char image_offsetX = (bounds.size.w - image_size.w) / 2; 
+  
+  GRect image_frame = GRect(image_offsetX, text_size.h + y_offset_time_layer + 6, image_size.w, image_size.h);
 
   // Uso de GCompOpOr para mostrar las partes blancas de la imagen
   s_layer = bitmap_layer_create(image_frame);
