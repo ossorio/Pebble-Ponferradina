@@ -1,0 +1,52 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "\u00d3scar Gonz\u00e1lez Ossorio",
+    "enableMultiJS": false,
+    "longName": "Ponferradina",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/escudo.bmp",
+                "name": "ESCUDO_PONFE",
+                "targetPlatforms": [
+                    "aplite",
+                    "basalt",
+                    "chalk"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/escudo-lista-aplicaciones.bmp",
+                "name": "ESCUDO_28x28",
+                "targetPlatforms": [
+                    "aplite",
+                    "basalt",
+                    "chalk"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/icono-bluetooth.png",
+                "name": "BT_ICON",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "Ponferradina",
+    "targetPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+    ],
+    "uuid": "45f0d573-88b6-4e1d-be70-99d36cfbffc7",
+    "versionLabel": "1.05",
+    "watchapp": {
+        "watchface": true
+    }
+}
