@@ -3,7 +3,11 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer_hours;
 static TextLayer *s_time_layer_minutes;
-static GBitmap *s_bitmap;
+#if defined(PBL_BW)
+  static GBitmap *s_bitmap_bw;
+#elif defined(PBL_COLOR)
+  static GBitmap *s_bitmap;
+#endif
 static BitmapLayer *s_layer;
 static GBitmap *s_bitmap_bt;
 static BitmapLayer *s_layer_bt;
@@ -50,6 +54,8 @@ static void my_layer_draw(Layer *layer, GContext *ctx) {
   // Pinta la otra mitad de azul
   graphics_context_set_fill_color(ctx, GColorFromHEX(0x007cb2));
   graphics_fill_rect(ctx, bounds2 , 0, GCornerNone);
+  
+  
 }
 
 
@@ -135,20 +141,29 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   
-  // Se carga la imagen del escudo
-  s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ESCUDO_PONFE);
-
-  GSize image_size = gbitmap_get_bounds(s_bitmap).size;
-
-  char image_offsetX = (bounds.size.w - image_size.w) / 2; 
+  #if defined(PBL_COLOR)
+    // Se carga la imagen del escudo en color
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ESCUDO_PONFE);
+    GSize image_size = gbitmap_get_bounds(s_bitmap).size;
+    char image_offsetX = (bounds.size.w - image_size.w) / 2; 
+    GRect image_frame = GRect(image_offsetX, text_size.h + y_offset_time_layer + 6, image_size.w, image_size.h);
+    s_layer = bitmap_layer_create(image_frame);
   
-  GRect image_frame = GRect(image_offsetX, text_size.h + y_offset_time_layer + 6, image_size.w, image_size.h);
-
-  // Uso de GCompOpOr para mostrar las partes blancas de la imagen
-  s_layer = bitmap_layer_create(image_frame);
-  bitmap_layer_set_bitmap(s_layer, s_bitmap);
-  bitmap_layer_set_compositing_mode(s_layer, GCompOpSet);
-  bitmap_layer_set_alignment(s_layer, GAlignBottom);
+    bitmap_layer_set_bitmap(s_layer, s_bitmap);
+    bitmap_layer_set_compositing_mode(s_layer, GCompOpSet);
+    bitmap_layer_set_alignment(s_layer, GAlignBottom);
+ #elif defined(PBL_BW)
+    // Se carga la imagen del escudo en blanco y negro
+    s_bitmap_bw = gbitmap_create_with_resource(RESOURCE_ID_ESCUDO_BN);
+    GSize image_size = gbitmap_get_bounds(s_bitmap_bw).size;
+    char image_offsetX = (bounds.size.w - image_size.w) / 2; 
+    GRect image_frame = GRect(image_offsetX, text_size.h + y_offset_time_layer + 6, image_size.w, image_size.h);
+    s_layer = bitmap_layer_create(image_frame);
+  
+    bitmap_layer_set_bitmap(s_layer, s_bitmap_bw);
+    bitmap_layer_set_compositing_mode(s_layer, GCompOpSet);
+    bitmap_layer_set_alignment(s_layer, GAlignBottom);
+  #endif
   
   // Create the Bluetooth icon GBitmap
   s_bitmap_bt = gbitmap_create_with_resource(RESOURCE_ID_BT_ICON);
@@ -168,7 +183,11 @@ static void main_window_unload(Window *window) {
   bitmap_layer_destroy(s_layer_bt);
   text_layer_destroy(s_time_layer_hours);
   text_layer_destroy(s_time_layer_minutes);
-  gbitmap_destroy(s_bitmap);
+  #if defined(PBL_BW)
+    gbitmap_destroy(s_bitmap_bw);
+  #elif defined(PBL_COLOR)
+    gbitmap_destroy(s_bitmap);
+  #endif
   gbitmap_destroy(s_bitmap_bt);
   text_layer_destroy(s_battery_layer);
   text_layer_destroy(s_date_layer);

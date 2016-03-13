@@ -10,8 +10,9 @@
     "resources": {
         "media": [
             {
-                "file": "images/escudo.bmp",
-                "name": "ESCUDO_PONFE",
+                "file": "images/escudo-lista-aplicaciones.bmp",
+                "menuIcon": true,
+                "name": "ESCUDO_28x28",
                 "targetPlatforms": [
                     "aplite",
                     "basalt",
@@ -20,10 +21,17 @@
                 "type": "bitmap"
             },
             {
-                "file": "images/escudo-lista-aplicaciones.bmp",
-                "name": "ESCUDO_28x28",
+                "file": "images/escudo-BN.bmp",
+                "name": "ESCUDO_BN",
                 "targetPlatforms": [
-                    "aplite",
+                    "aplite"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/escudo.bmp",
+                "name": "ESCUDO_PONFE",
+                "targetPlatforms": [
                     "basalt",
                     "chalk"
                 ],
@@ -45,7 +53,7 @@
         "chalk"
     ],
     "uuid": "45f0d573-88b6-4e1d-be70-99d36cfbffc7",
-    "versionLabel": "1.06",
+    "versionLabel": "1.10",
     "watchapp": {
         "watchface": true
     }
