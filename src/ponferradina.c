@@ -1,5 +1,8 @@
 #include <pebble.h>
 
+#define KEY_TEMPERATURE 0
+#define KEY_CONDITIONS 1
+
 static Window *s_main_window;
 static TextLayer *s_time_layer_hours;
 static TextLayer *s_time_layer_minutes;
@@ -13,8 +16,42 @@ static GBitmap *s_bitmap_bt;
 static BitmapLayer *s_layer_bt;
 static TextLayer *s_battery_layer;
 static TextLayer *s_date_layer;
+static TextLayer *s_weather_layer;
 
 static char spanish_language [5] = "es_ES";
+
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  // Almacena la informacion entrante
+  static char temperature_buffer[8];
+  static char conditions_buffer[32];
+  static char weather_layer_buffer[32];
+  
+  // Lee las tuplas para obtener los datos
+  Tuple *temp_tuple = dict_find(iterator, KEY_TEMPERATURE);
+  Tuple *conditions_tuple = dict_find(iterator, KEY_CONDITIONS);
+  
+  // Si todos los datos estan disponibles, se usan
+  if(temp_tuple && conditions_tuple) {
+  snprintf(temperature_buffer, sizeof(temperature_buffer), "%d", (int)temp_tuple->value->int32);
+  }
+  
+  // Se concatenan las cadenas de caracteres y se muestran
+  snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s", temperature_buffer);
+  text_layer_set_text(s_weather_layer, weather_layer_buffer);
+  
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
 
 static void bluetooth_callback(bool connected) {
   // Muestra el icono cuando esta desconectado
@@ -80,6 +117,19 @@ static void update_time() {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
+  
+  // Actualiza el tiempo atmosferico cada 45 minutos
+if(tick_time->tm_min % 45 == 0) {
+  // Se inicializa el diccionario
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+
+  // Se agrega un par clave-valor
+  dict_write_uint8(iter, 0, 0);
+
+  // Se envia el mensaje
+  app_message_outbox_send();
+}
 }
 
 static void main_window_load(Window *window) {
@@ -90,14 +140,17 @@ static void main_window_load(Window *window) {
   char y_offset_battery_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) - 11, bounds.size.h - 22);
   char x_offset_date_layer = PBL_IF_ROUND_ELSE(bounds.size.w - 62, bounds.size.w - 64);
   char y_offset_date_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) - 12 , bounds.size.h - 18);
+  char x_offset_weather_layer = PBL_IF_ROUND_ELSE(bounds.size.w - 70, bounds.size.w - 56);
+  char y_offset_weather_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) + 22, (bounds.size.h / 2) - 18);
   GColor color_blue = GColorFromHEX(0x007cb2);
-  
+                                                  
   layer_set_update_proc(window_layer, my_layer_draw);
     
-  // Creacion de los dos layers con las horas y minutos
+  // Creacion del layer con las horas
   s_time_layer_hours = text_layer_create(
       GRect(0, y_offset_time_layer, (bounds.size.w / 2 - 4), 52));
   
+  // Creacion del layer con los minutos
   s_time_layer_minutes = text_layer_create(
       GRect((bounds.size.w / 2) + 4, y_offset_time_layer, (bounds.size.w / 2) - 4, 52));
 
@@ -105,28 +158,43 @@ static void main_window_load(Window *window) {
   s_battery_layer = text_layer_create(
       GRect(x_offset_battery_layer, y_offset_battery_layer, 40, 18));
   
+  // Creacion del layer para la fecha
   s_date_layer = text_layer_create(
       GRect(x_offset_date_layer, y_offset_date_layer , 64, PBL_IF_ROUND_ELSE(36, 18)));
   
+  // Creacion del layer para mostrar el tiempo atmosferico
+  s_weather_layer = text_layer_create(
+    GRect(x_offset_weather_layer, y_offset_weather_layer, 72, 72));
   
+  // Estilo del layer del tiempo atmosferico
+  text_layer_set_background_color(s_weather_layer, GColorClear);
+  text_layer_set_text_color(s_weather_layer, GColorWhite);
+  text_layer_set_font(s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
+  text_layer_set_text(s_weather_layer, "(-)");
+  text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
+  
+  // Estilo del layer con la hora
   text_layer_set_background_color(s_time_layer_hours, GColorClear);
   text_layer_set_text_color(s_time_layer_hours, color_blue);
   text_layer_set_text(s_time_layer_hours, "00");
   text_layer_set_font(s_time_layer_hours, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
   text_layer_set_text_alignment(s_time_layer_hours, GTextAlignmentRight);
   
+  // Estilo del layer con los minutos
   text_layer_set_background_color(s_time_layer_minutes, GColorClear);
   text_layer_set_text_color(s_time_layer_minutes, GColorWhite);
   text_layer_set_text(s_time_layer_minutes, "00");
   text_layer_set_font(s_time_layer_minutes, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
   text_layer_set_text_alignment(s_time_layer_minutes, GTextAlignmentLeft);
   
+  // Estilo del layer con el porcentaje de bateria
   text_layer_set_background_color(s_battery_layer, GColorClear);
   text_layer_set_text_color(s_battery_layer, color_blue);
   text_layer_set_text(s_battery_layer, "---");
   text_layer_set_font(s_battery_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   text_layer_set_text_alignment(s_battery_layer, GTextAlignmentLeft);
   
+  // Estilo del layer con la fecha
   text_layer_set_background_color(s_date_layer, GColorClear);
   text_layer_set_text_color(s_date_layer, GColorWhite);
   text_layer_set_text(s_date_layer, "---");
@@ -140,6 +208,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer_minutes));
   layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
+  layer_add_child(window_layer, text_layer_get_layer(s_weather_layer));
   
   #if defined(PBL_COLOR)
     // Se carga la imagen del escudo en color
@@ -191,6 +260,7 @@ static void main_window_unload(Window *window) {
   gbitmap_destroy(s_bitmap_bt);
   text_layer_destroy(s_battery_layer);
   text_layer_destroy(s_date_layer);
+  text_layer_destroy(s_weather_layer);
 }
 
 
@@ -233,6 +303,16 @@ static void init() {
   connection_service_subscribe((ConnectionHandlers) {
   .pebble_app_connection_handler = bluetooth_callback
 });
+  
+  // Registro de los callbacks para obtener el tiempo atmosferico
+  app_message_register_inbox_received(inbox_received_callback);
+  // Abre el mensaje de la aplicacion
+  const int inbox_size = 128;
+  const int outbox_size = 128;
+  app_message_open(inbox_size, outbox_size);
+  app_message_register_inbox_dropped(inbox_dropped_callback);
+  app_message_register_outbox_failed(outbox_failed_callback);
+  app_message_register_outbox_sent(outbox_sent_callback);
   
 }
 

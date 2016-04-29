@@ -1,7 +1,10 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_CONDITIONS": 1,
+        "KEY_TEMPERATURE": 0
+    },
     "capabilities": [
-        ""
+        "location"
     ],
     "companyName": "\u00d3scar Gonz\u00e1lez Ossorio",
     "enableMultiJS": false,
@@ -53,7 +56,7 @@
         "chalk"
     ],
     "uuid": "45f0d573-88b6-4e1d-be70-99d36cfbffc7",
-    "versionLabel": "1.10",
+    "versionLabel": "2.0",
     "watchapp": {
         "watchface": true
     }
