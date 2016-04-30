@@ -2,6 +2,7 @@
 
 #define KEY_TEMPERATURE 0
 #define KEY_CONDITIONS 1
+#define KEY_FREQUENCY_UPDATE_WEATHER 2
 
 static Window *s_main_window;
 static TextLayer *s_time_layer_hours;
@@ -20,6 +21,8 @@ static TextLayer *s_weather_layer;
 
 static char spanish_language [5] = "es_ES";
 
+int freq_update_weather;
+
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   // Almacena la informacion entrante
   static char temperature_buffer[8];
@@ -29,6 +32,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   // Lee las tuplas para obtener los datos
   Tuple *temp_tuple = dict_find(iterator, KEY_TEMPERATURE);
   Tuple *conditions_tuple = dict_find(iterator, KEY_CONDITIONS);
+  Tuple *freq_update_t = dict_find(iterator, KEY_FREQUENCY_UPDATE_WEATHER);
   
   // Si todos los datos estan disponibles, se usan
   if(temp_tuple && conditions_tuple) {
@@ -39,7 +43,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s", temperature_buffer);
   text_layer_set_text(s_weather_layer, weather_layer_buffer);
   
+  if(freq_update_t) {
+   freq_update_weather = freq_update_t->value->int32;
+  }
+  
 }
+
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
@@ -118,18 +127,18 @@ static void update_time() {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
   
-  // Actualiza el tiempo atmosferico cada 45 minutos
-if(tick_time->tm_min % 45 == 0) {
-  // Se inicializa el diccionario
-  DictionaryIterator *iter;
-  app_message_outbox_begin(&iter);
-
-  // Se agrega un par clave-valor
-  dict_write_uint8(iter, 0, 0);
-
-  // Se envia el mensaje
-  app_message_outbox_send();
-}
+  // Actualiza el tiempo atmosferico cada cierto numero de minutos
+  if(tick_time->tm_min % 45 == 0) {
+    // Se inicializa el diccionario
+    DictionaryIterator *iter;
+    app_message_outbox_begin(&iter);
+  
+    // Se agrega un par clave-valor
+    dict_write_uint8(iter, 0, 0);
+  
+    // Se envia el mensaje
+    app_message_outbox_send();
+  }
 }
 
 static void main_window_load(Window *window) {

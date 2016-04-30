@@ -1,10 +1,12 @@
 {
     "appKeys": {
         "KEY_CONDITIONS": 1,
+        "KEY_FREQUENCY_UPDATE_WEATHER": 2,
         "KEY_TEMPERATURE": 0
     },
     "capabilities": [
-        "location"
+        "location",
+        "configurable"
     ],
     "companyName": "\u00d3scar Gonz\u00e1lez Ossorio",
     "enableMultiJS": false,
