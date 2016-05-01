@@ -21,6 +21,9 @@ static TextLayer *s_weather_layer;
 
 static char spanish_language [5] = "es_ES";
 
+static GFont s_font_temperature;
+static GFont s_font_time;
+
 int freq_update_weather;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -36,7 +39,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   
   // Si todos los datos estan disponibles, se usan
   if(temp_tuple && conditions_tuple) {
-  snprintf(temperature_buffer, sizeof(temperature_buffer), "%d", (int)temp_tuple->value->int32);
+  snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°", (int)temp_tuple->value->int32);
   }
   
   // Se concatenan las cadenas de caracteres y se muestran
@@ -178,22 +181,22 @@ static void main_window_load(Window *window) {
   // Estilo del layer del tiempo atmosferico
   text_layer_set_background_color(s_weather_layer, GColorClear);
   text_layer_set_text_color(s_weather_layer, GColorWhite);
-  text_layer_set_font(s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
-  text_layer_set_text(s_weather_layer, "(-)");
+  text_layer_set_font(s_weather_layer, s_font_temperature);
+  text_layer_set_text(s_weather_layer, "--");
   text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
   
   // Estilo del layer con la hora
   text_layer_set_background_color(s_time_layer_hours, GColorClear);
   text_layer_set_text_color(s_time_layer_hours, color_blue);
-  text_layer_set_text(s_time_layer_hours, "00");
-  text_layer_set_font(s_time_layer_hours, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
+  text_layer_set_text(s_time_layer_hours, "--");
+  text_layer_set_font(s_time_layer_hours, s_font_time);
   text_layer_set_text_alignment(s_time_layer_hours, GTextAlignmentRight);
   
   // Estilo del layer con los minutos
   text_layer_set_background_color(s_time_layer_minutes, GColorClear);
   text_layer_set_text_color(s_time_layer_minutes, GColorWhite);
-  text_layer_set_text(s_time_layer_minutes, "00");
-  text_layer_set_font(s_time_layer_minutes, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
+  text_layer_set_text(s_time_layer_minutes, "--");
+  text_layer_set_font(s_time_layer_minutes, s_font_time);
   text_layer_set_text_alignment(s_time_layer_minutes, GTextAlignmentLeft);
   
   // Estilo del layer con el porcentaje de bateria
@@ -280,6 +283,10 @@ static void init() {
     setlocale(LC_ALL, "es_ES");
   else
     setlocale(LC_ALL, "en_US");
+  
+  // Inicializacion de las fuentes personalizadas (horas y minutos, y temperatura)
+  s_font_temperature = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TEMPERATURE_21));
+  s_font_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TIME_42));
   
   // Creacion de la ventana principal y asignacion a un puntero
   s_main_window = window_create();

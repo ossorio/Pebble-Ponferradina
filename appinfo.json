@@ -15,6 +15,28 @@
     "resources": {
         "media": [
             {
+                "characterRegex": "[0-9 -]",
+                "file": "fonts/font2.ttf",
+                "name": "FONT_TIME_42",
+                "targetPlatforms": [
+                    "aplite",
+                    "basalt",
+                    "chalk"
+                ],
+                "type": "font"
+            },
+            {
+                "characterRegex": "[0-9\u00b0CF -]",
+                "file": "fonts/font1.ttf",
+                "name": "FONT_TEMPERATURE_21",
+                "targetPlatforms": [
+                    "aplite",
+                    "basalt",
+                    "chalk"
+                ],
+                "type": "font"
+            },
+            {
                 "file": "images/escudo-lista-aplicaciones.bmp",
                 "menuIcon": true,
                 "name": "ESCUDO_28x28",
