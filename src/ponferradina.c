@@ -25,6 +25,7 @@ static const char spanish_language [8] = "es_ES";
 
 static GFont s_font_temperature;
 static GFont s_font_time;
+static GFont s_font_date;
 
 static int freq_update_weather;
 
@@ -161,8 +162,8 @@ static void main_window_load(Window *window) {
   char x_offset_battery_layer = PBL_IF_ROUND_ELSE(17, 17);
   char y_offset_battery_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) - 11, bounds.size.h - 22);
   char x_offset_date_layer = PBL_IF_ROUND_ELSE(bounds.size.w - 62, bounds.size.w - 64);
-  char y_offset_date_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) - 12 , bounds.size.h - 18);
-  char x_offset_weather_layer = PBL_IF_ROUND_ELSE(bounds.size.w - 70, bounds.size.w - 56);
+  char y_offset_date_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) - 12 , bounds.size.h - 15);
+  char x_offset_weather_layer = PBL_IF_ROUND_ELSE(bounds.size.w - 65, bounds.size.w - 56);
   char y_offset_weather_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) + 22, (bounds.size.h / 2) - 18);
   GColor color_blue = GColorFromHEX(0x007cb2);
   static char lastWeatherBuffer[32] = "--";
@@ -223,7 +224,7 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_date_layer, GColorClear);
   text_layer_set_text_color(s_date_layer, GColorWhite);
   text_layer_set_text(s_date_layer, "---");
-  text_layer_set_font(s_date_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  text_layer_set_font(s_date_layer, s_font_date);
   text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
 
   GSize text_size = text_layer_get_content_size(s_time_layer_hours);
@@ -300,6 +301,7 @@ static void init() {
   // Inicializacion de las fuentes personalizadas (horas y minutos, y temperatura)
   s_font_temperature = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TEMPERATURE_21));
   s_font_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TIME_42));
+  s_font_date = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DATE_11));
   
   if(persist_exists(KEY_SAVED_FREQUENCY_UPDATE_WEATHER))
     freq_update_weather = persist_read_int(KEY_SAVED_FREQUENCY_UPDATE_WEATHER);

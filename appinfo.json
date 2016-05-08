@@ -15,6 +15,17 @@
     "resources": {
         "media": [
             {
+                "characterRegex": "[A-Za-z0-9 ]",
+                "file": "fonts/font3.ttf",
+                "name": "FONT_DATE_11",
+                "targetPlatforms": [
+                    "aplite",
+                    "basalt",
+                    "chalk"
+                ],
+                "type": "font"
+            },
+            {
                 "characterRegex": "[0-9 -]",
                 "file": "fonts/font2.ttf",
                 "name": "FONT_TIME_42",
