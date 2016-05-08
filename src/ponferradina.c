@@ -136,7 +136,6 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
   
   bool hasToUpdate = (((tick_time->tm_hour * 60) + tick_time->tm_min) % freq_update_weather) == 0;
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "hasToUpdate: %d || freq_update_weather: %d", hasToUpdate, freq_update_weather);
   
   // Actualiza el tiempo atmosferico cada cierto numero de minutos
   if(hasToUpdate){
