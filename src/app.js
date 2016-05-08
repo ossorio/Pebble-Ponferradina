@@ -1,7 +1,17 @@
-Pebble.addEventListener('showConfiguration', function() {
-  var url = 'https://dl.dropboxusercontent.com/u/14197480/Configuracion-app-pebble/config.html';
+function getStorageValue(item, default_value){
+    var retVal = localStorage.getItem(item);
+    if (retVal === null || retVal == 'undefined' || retVal == 'null'){
+        retVal = default_value;
+    }
+    return retVal;
+}
 
-  Pebble.openURL(url);
+Pebble.addEventListener('showConfiguration', function() {
+  var freqUpdateWeather = getStorageValue("freqUpdateWeather", "60");
+  var settingsURI = "freqUpdateWeather=" + encodeURIComponent(freqUpdateWeather);
+  var url = 'https://dl.dropboxusercontent.com/u/14197480/Configuracion-app-pebble/config.html?';
+
+  Pebble.openURL(url + settingsURI);
 });
 
 Pebble.addEventListener('webviewclosed', function(e) {
@@ -14,6 +24,10 @@ Pebble.addEventListener('webviewclosed', function(e) {
   var dict = {
     'KEY_FREQUENCY_UPDATE_WEATHER': configData.freqUpdateWeather
 };
+  var freqUpdateWeather = configData.freqUpdateWeather;
+  if (freqUpdateWeather !== undefined){
+    localStorage.setItem("freqUpdateWeather", freqUpdateWeather);
+  }
 
 
 //Envia los datos

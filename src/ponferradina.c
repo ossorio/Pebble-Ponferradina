@@ -1,8 +1,10 @@
-#include <pebble.h>
+#include "ponferradina.h"
 
 #define KEY_TEMPERATURE 0
 #define KEY_CONDITIONS 1
 #define KEY_FREQUENCY_UPDATE_WEATHER 2
+#define KEY_LAST_WEATHER_BUFFER 3
+#define KEY_SAVED_FREQUENCY_UPDATE_WEATHER 4
 
 static Window *s_main_window;
 static TextLayer *s_time_layer_hours;
@@ -19,12 +21,12 @@ static TextLayer *s_battery_layer;
 static TextLayer *s_date_layer;
 static TextLayer *s_weather_layer;
 
-static char spanish_language [5] = "es_ES";
+static const char spanish_language [8] = "es_ES";
 
 static GFont s_font_temperature;
 static GFont s_font_time;
 
-int freq_update_weather;
+static int freq_update_weather;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   // Almacena la informacion entrante
@@ -39,15 +41,17 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   
   // Si todos los datos estan disponibles, se usan
   if(temp_tuple && conditions_tuple) {
-  snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°", (int)temp_tuple->value->int32);
+    snprintf(temperature_buffer, sizeof(temperature_buffer), "%d°", (int)temp_tuple->value->int32);
   }
   
   // Se concatenan las cadenas de caracteres y se muestran
   snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s", temperature_buffer);
   text_layer_set_text(s_weather_layer, weather_layer_buffer);
+  persist_write_string(KEY_LAST_WEATHER_BUFFER, weather_layer_buffer);
   
   if(freq_update_t) {
-   freq_update_weather = freq_update_t->value->int32;
+    freq_update_weather = freq_update_t->value->int32;
+    persist_write_int(KEY_SAVED_FREQUENCY_UPDATE_WEATHER, freq_update_weather);
   }
   
 }
@@ -130,8 +134,11 @@ static void update_time() {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
   
+  bool hasToUpdate = (((tick_time->tm_hour * 60) + tick_time->tm_min) % freq_update_weather) == 0;
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "hasToUpdate: %d || freq_update_weather: %d", hasToUpdate, freq_update_weather);
+  
   // Actualiza el tiempo atmosferico cada cierto numero de minutos
-  if(tick_time->tm_min % 45 == 0) {
+  if(hasToUpdate){
     // Se inicializa el diccionario
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -141,6 +148,9 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   
     // Se envia el mensaje
     app_message_outbox_send();
+    
+    if(!connection_service_peek_pebble_app_connection())
+      text_layer_set_text(s_weather_layer, "--");
   }
 }
 
@@ -155,6 +165,8 @@ static void main_window_load(Window *window) {
   char x_offset_weather_layer = PBL_IF_ROUND_ELSE(bounds.size.w - 70, bounds.size.w - 56);
   char y_offset_weather_layer = PBL_IF_ROUND_ELSE((bounds.size.h / 2) + 22, (bounds.size.h / 2) - 18);
   GColor color_blue = GColorFromHEX(0x007cb2);
+  static char lastWeatherBuffer[32] = "--";
+  persist_read_string(KEY_LAST_WEATHER_BUFFER, lastWeatherBuffer, 32);
                                                   
   layer_set_update_proc(window_layer, my_layer_draw);
     
@@ -172,7 +184,7 @@ static void main_window_load(Window *window) {
   
   // Creacion del layer para la fecha
   s_date_layer = text_layer_create(
-      GRect(x_offset_date_layer, y_offset_date_layer , 64, PBL_IF_ROUND_ELSE(36, 18)));
+      GRect(x_offset_date_layer, y_offset_date_layer, 64, PBL_IF_ROUND_ELSE(36, 18)));
   
   // Creacion del layer para mostrar el tiempo atmosferico
   s_weather_layer = text_layer_create(
@@ -182,7 +194,8 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_weather_layer, GColorClear);
   text_layer_set_text_color(s_weather_layer, GColorWhite);
   text_layer_set_font(s_weather_layer, s_font_temperature);
-  text_layer_set_text(s_weather_layer, "--");
+  text_layer_set_text(s_weather_layer, lastWeatherBuffer);
+  //xt_layer_set_text(s_weather_layer, "--");
   text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
   
   // Estilo del layer con la hora
@@ -279,7 +292,7 @@ static void main_window_unload(Window *window) {
 static void init() {
   
   // Idioma local fijado (Ingles o Español)
-  if(!strcmp(i18n_get_system_locale(), spanish_language))
+  if(!strncmp(i18n_get_system_locale(), spanish_language, 5))
     setlocale(LC_ALL, "es_ES");
   else
     setlocale(LC_ALL, "en_US");
@@ -287,6 +300,11 @@ static void init() {
   // Inicializacion de las fuentes personalizadas (horas y minutos, y temperatura)
   s_font_temperature = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TEMPERATURE_21));
   s_font_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_TIME_42));
+  
+  if(persist_exists(KEY_SAVED_FREQUENCY_UPDATE_WEATHER))
+    freq_update_weather = persist_read_int(KEY_SAVED_FREQUENCY_UPDATE_WEATHER);
+  else
+    freq_update_weather = 60;
   
   // Creacion de la ventana principal y asignacion a un puntero
   s_main_window = window_create();
