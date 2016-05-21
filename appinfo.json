@@ -15,7 +15,7 @@
     "resources": {
         "media": [
             {
-                "characterRegex": "[A-Za-z0-9 ]",
+                "characterRegex": "[A-Za-z0-9\u00e1\u00e9\u00ed\u00f3\u00fa ]",
                 "file": "fonts/font3.ttf",
                 "name": "FONT_DATE_11",
                 "targetPlatforms": [
@@ -91,7 +91,7 @@
         "chalk"
     ],
     "uuid": "45f0d573-88b6-4e1d-be70-99d36cfbffc7",
-    "versionLabel": "2.0",
+    "versionLabel": "2.1",
     "watchapp": {
         "watchface": true
     }
